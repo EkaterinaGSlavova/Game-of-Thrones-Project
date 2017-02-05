@@ -34,11 +34,16 @@
         self.expandingLabel = [[UILabel alloc]initWithFrame:CGRectMake(70.0, 25.0, 250.0, 60.0)];
         self.expandingLabel.textAlignment = NSTextAlignmentLeft;
         self.expandingLabel.font = [UIFont systemFontOfSize:13];
+        self.expandingLabel.textColor = [UIColor lightGrayColor];
         self.expandingLabel.numberOfLines = 0;
-        self.expandingLabel.lineBreakMode = NSLineBreakByWordWrapping;
+        self.expandingLabel.lineBreakMode = NSLineBreakByCharWrapping;
         
         self.thumbnailImageView = [[UIImageView alloc]init];
+        self.thumbnailImageView.layer.cornerRadius = self.thumbnailImageView.bounds.size.width/2.0;
+        self.thumbnailImageView.clipsToBounds = YES;
+        self.separatorInset = UIEdgeInsetsMake(0, 60, 0, 0);
         
+        [self.contentView.superview setClipsToBounds:YES];
         [self.contentView addSubview:self.titleLabel];
         [self.contentView addSubview:self.expandingLabel];
         [self.contentView addSubview:self.thumbnailImageView];
@@ -59,7 +64,7 @@
     self.thumbnailImageView.frame = frame;
     self.thumbnailImageView.layer.cornerRadius = self.thumbnailImageView.bounds.size.width/2.0;
     self.thumbnailImageView.clipsToBounds = YES;
-    self.separatorInset =UIEdgeInsetsMake(0, 60, 0, 0);
+    self.separatorInset = UIEdgeInsetsMake(0, 60, 0, 0);
     
     frame= CGRectMake(boundsX+70 ,0, 200, 25);
     self.titleLabel.frame = frame;

@@ -9,6 +9,7 @@
 #import "MasterTableViewController.h"
 #import "CustomTableViewCell.h"
 #import "DetailViewController.h"
+#import <SDWebImage/UIImageView+WebCache.h>
 
 @interface MasterTableViewController () <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate>
 
@@ -64,6 +65,9 @@
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
     self.tableView.rowHeight = 60;
+    
+    self.longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
+    [self.tableView addGestureRecognizer:self.longPressRecognizer];
 }
 
 - (void)httpGetRequest {
@@ -98,9 +102,9 @@
         [self.abstracts addObject:abstract];
         NSString *url = [itemResults objectForKey:@"url"];
         [self.urls addObject:url];
+        [self.tableView reloadData];
     }
-    [self.tableView reloadData];
-
+    
 }
 #pragma mark - Table view data source
 
@@ -116,8 +120,8 @@
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     
     if (selectedIndex == indexPath.row) {
+        tableView.rowHeight = UITableViewAutomaticDimension;
         return 80 ;
-       
     } else {
         return 60;
     }
@@ -128,30 +132,16 @@
     
     CustomTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     
-    if (cell == nil) {
-        
-        cell = [[CustomTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
-        
-    }
-     self.longPressRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPress:)];
-    [self.tableView addGestureRecognizer:self.longPressRecognizer];
     
-    cell.thumbnailImageView.layer.cornerRadius = cell.thumbnailImageView.bounds.size.width/2.0;
-    cell.thumbnailImageView.clipsToBounds = YES;
-    cell.separatorInset = UIEdgeInsetsMake(0, 60, 0, 0);
-    [cell.contentView.superview setClipsToBounds:YES];
-
-    NSString *myImage = [self.thumbnails objectAtIndex:indexPath.row];
-    NSURL *url = [NSURL URLWithString:myImage];
-    NSData *data = [NSData dataWithContentsOfURL:url];
-    UIImage *image = [UIImage imageWithData:data];
-    cell.thumbnailImageView.image = image;
-
+    if (cell == nil) {
+        cell = [[CustomTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:CellIdentifier];
+    }
+    
     cell.titleLabel.text = [self.titles objectAtIndex:indexPath.row];
     cell.expandingLabel.text = [self.abstracts objectAtIndex:indexPath.row];
     [cell.expandingLabel sizeToFit];
-    cell.expandingLabel.numberOfLines = 0;
-    cell.expandingLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    
+    [cell.thumbnailImageView sd_setImageWithURL:[NSURL URLWithString:self.thumbnails[indexPath.row]]];
     
     return cell;
 }
@@ -162,9 +152,7 @@
     NSString *title = [self.titles objectAtIndex:[self.tableView indexPathForSelectedRow].row];
     [detailController.navigationItem setTitle:title];
     NSString *abstract = [self.abstracts objectAtIndex:[self.tableView indexPathForSelectedRow].row];
-    NSString *myImage = [self.thumbnails objectAtIndex:indexPath.row];
-    NSURL *url = [NSURL URLWithString:myImage];
-    NSData *data = [NSData dataWithContentsOfURL:url];
+    NSData *data = [NSData dataWithContentsOfURL:[NSURL URLWithString:self.thumbnails[indexPath.row]]];
     UIImage *image = [UIImage imageWithData:data];
     detailController.imageView.image = image;
 
@@ -177,8 +165,13 @@
     NSURL *theURL = [NSURL URLWithString:fullURL];
     detailController.articleURL = theURL;
     
+    CATransition* transition = [CATransition animation];
+    transition.duration = 0.3;
+    transition.type = kCATransitionFade;
+    transition.subtype = kCATransitionFromTop;
     
-    [self.navigationController pushViewController:detailController animated:YES];
+    [self.navigationController.view.layer addAnimation:transition forKey:kCATransition];
+    [self.navigationController pushViewController:detailController animated:NO];
 }
 
 -(void)longPress:(UILongPressGestureRecognizer*)longPress {
